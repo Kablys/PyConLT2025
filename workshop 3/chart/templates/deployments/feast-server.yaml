@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pycondemo-feast-server
+  namespace: {{ .Release.Namespace }}
+spec:
+  replicas: {{ .Values.feastServer.replicaCount }}
+  selector:
+    matchLabels:
+      app: pycondemo
+      component: feast-server
+  template:
+    metadata:
+      labels:
+        app: pycondemo
+        component: feast-server
+    spec:
+      containers:
+        - name: feast-server
+          image: {{ .Values.feastServer.image.repository }}:{{ .Values.feastServer.image.tag }}
+          imagePullPolicy: {{ .Values.feastServer.image.pullPolicy }}
+          args: [
+            "cd ${FEAST_REPO_PATH}; uv run feast serve -h 0.0.0.0;"
+          ]
+          ports:
+            - name: http
+              containerPort: 6566
+              protocol: TCP
+          resources:
+            {{- toYaml .Values.feastServer.resources | nindent 12 }}
+          env:
+            {{- with (.Values.feastServer.env) }}
+              {{- toYaml . | nindent 12 }}
+            {{- end }}
+            {{- with (.Values.clickhouseDbCredentials.env) }}
+              {{- toYaml . | nindent 12 }}
+            {{- end }}
+            {{- with (.Values.clickhouseOfflineStoreDbCredentials.env) }}
+              {{- toYaml . | nindent 12 }}
+            {{- end }}
+            {{- with (.Values.feastClickhouseDBCredentials.env) }}
+              {{- toYaml . | nindent 12 }}
+            {{- end }}
+            {{- with (.Values.clickhouseOnlineStoreDbCredentials.env) }}
+              {{- toYaml . | nindent 12 }}
+            {{- end }}
+            {{- with (.Values.feast.env) }}
+              {{- toYaml . | nindent 12 }}
+            {{- end }}

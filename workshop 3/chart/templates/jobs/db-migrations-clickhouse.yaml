@@ -1,0 +1,36 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: db-migrations-clickhouse
+  labels:
+    team: ml
+    app.kubernetes.io/name: db-migrations-clickhouse
+spec:
+  backoffLimit: 10
+  completions: 1
+  parallelism: 1
+  template:
+    metadata:
+      name: db-migrations-clickhouse
+    spec:
+      securityContext:
+        runAsUser: 1000
+      restartPolicy: OnFailure
+      containers:
+        - name: db-migrations-clickhouse
+          image: "{{ $.Values.image_dbmigrations.repository }}:{{ $.Values.image_dbmigrations.tag }}"
+          args: [
+            "/bin/sh",
+            "-c",
+            "cd /home/db_migrations_clickhouse; goose -v clickhouse 'tcp://'$CLICKHOUSE_HOST':9000?username='$CONFIGURATION_USERS_ML_USERNAME'&password='$CONFIGURATION_USERS_ML_PASSWORD up;"
+          ]
+          env:
+            {{- with (.Values.clickhouseDbCredentials.env) }}
+              {{- toYaml . | nindent 14 }}
+              {{- end }}
+          resources:
+            requests:
+              cpu: "500m"
+              memory: "2000Mi"
+            limits:
+              memory: "2000Mi"

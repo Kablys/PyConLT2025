@@ -1,0 +1,189 @@
+# set `environment` key with one of the available `overrides` blocks to override default values.
+environment:
+
+policy:
+  move_factor: 0.1
+
+image:
+  repository: localhost:5000/pycondemofeast
+  tag: latest
+  pullPolicy: Always
+
+image_dbmigrations:
+  repository: localhost:5000/pycondemodbmigrations
+  tag: latest
+  pullPolicy: Always
+
+dbCredentials:
+  env:
+    - name: DB_USER
+      value: "postgres"
+    - name: DB_PASSWORD
+      value: "password"
+    - name: DB_HOST
+      value: "pycondemo-postgresql.pycondemo.svc.cluster.local"
+    - name: DB
+      value: "postgres"
+
+feastClickhouseDBCredentials:
+  env:
+    - name: FEAST_REGISTRY_DB_USER
+      value: "postgres"
+    - name: FEAST_REGISTRY_DB_PASSWORD
+      value: "password"
+    - name: FEAST_REGISTRY_DB_HOST
+      value: "pycondemo-postgresql.pycondemo.svc.cluster.local"
+    - name: FEAST_CLICKHOUSE_REGISTRY_DB
+      value: "feast"
+    - name: FEAST_REGISTRY_DB_PORT
+      value: "5432"
+    - name: FEAST_PROJECT
+      value: pycondemo
+
+clickhouseDbCredentials:
+  env:
+    - name: CONFIGURATION_USERS_ML_USERNAME
+      value: "pycondemo"
+    - name: CONFIGURATION_USERS_ML_PASSWORD
+      value: "password"
+    - name: CLICKHOUSE_USER
+      value: "pycondemo"
+    - name: CLICKHOUSE_PASSWORD
+      value: "password"
+    - name: CLICKHOUSE_PORT
+      value: "8123"
+    - name: CLICKHOUSE_HOST
+      value: "clickhouse-pycondemo.pycondemo.svc.cluster.local"
+
+clickhouseOfflineStoreDbCredentials:
+  env:
+    - name: FEAST_OFFLINE_DB_USER
+      value: "pycondemo"
+    - name: FEAST_OFFLINE_DB_PASSWORD
+      value: "password"
+    - name: FEAST_OFFLINE_DB_HOST
+      value: "clickhouse-pycondemo.pycondemo.svc.cluster.local"
+    - name: FEAST_OFFLINE_DB_PORT
+      value: "8123"
+    - name: FEAST_OFFLINE_DB
+      value: feature_data
+    - name: FEAST_OFFLINE_STORE_TYPE
+      value: "feast.infra.offline_stores.contrib.clickhouse_offline_store.clickhouse.ClickhouseOfflineStore"
+
+loguru:
+  env:
+    - name: LOGURU_LEVEL
+      value: "INFO"
+
+redisCredentials:
+  env:
+    - name: REDIS_HOST
+      value: ""
+    - name: REDIS_PORT
+      value: ""
+
+feast:
+  env:
+    - name: FEAST_REPO_PATH
+      value: "/home/features"
+
+db_migrations:
+  suspend: false
+  env:
+    - name: DBMIGRATIONS_REPO_PATH
+      value: /home/db_migrations
+    - name: DBMIGRATIONS_DB_PORT
+      value: "5432"
+
+clickhouseOnlineStoreDbCredentials:
+  env:
+    - name: FEAST_ONLINE_REDIS_HOST
+      value: "pycondemo-redis-master.pycondemo.svc.cluster.local"
+    - name: FEAST_ONLINE_REDIS_PORT
+      value: "6379"
+    - name: FEAST_ONLINE_REDIS_DB
+      value: "2"
+
+mlflowCredentials:
+  env:
+    - name: MLFLOW_TRACKING_URI
+      value: "http://pycondemo-mlflow-tracking.pycondemo.svc.cluster.local:5000"
+
+global:
+  postgresql:
+    auth:
+      enablePostgresUser: true
+      username: postgres
+      password: password
+      postgresPassword: "password"
+
+redis:
+  replica:
+    replicaCount: 1
+  auth:
+    enabled: false
+
+# Team name
+team: castai
+clusterName: pycondemo
+
+imagePullSecrets: [ ]
+
+mlflow:
+  postgresql:
+    enabled: false
+  externalDatabase:
+    host: pycondemo-postgresql.pycondemo.svc.cluster.local
+    port: 5432
+    database: mlflow
+    user: postgres
+    password: password
+  tracking:
+    auth:
+      enabled: false
+    service:
+      type: ClusterIP
+      ports:
+        http: 5000
+      nodePorts:
+        http: "5000"
+  run:
+    enabled: false
+
+feastServer:
+  replicaCount: 1
+  image:
+    repository: localhost:5000/pycondemofeast
+    tag: latest
+    pullPolicy: Always
+  service:
+    type: ClusterIP
+    port: 6566
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  env:
+    - name: FEAST_FEATURE_SERVER_HOST
+      value: "0.0.0.0"
+    - name: FEAST_FEATURE_SERVER_PORT
+      value: "6566"
+
+api:
+  replicaCount: 1
+  env:
+    - name: FEAST_SERVER_URL
+      value: "http://pycondemo-feast-server.pycondemo.svc.cluster.local:6566"
+  service:
+    type: ClusterIP
+    port: 8000
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi

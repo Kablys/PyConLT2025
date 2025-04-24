@@ -1,0 +1,40 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: feast-materialize
+  labels:
+    team: ml
+    app.kubernetes.io/name: feast-materialize
+spec:
+  schedule: "* * * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: Never
+          containers:
+            - name: feast-materialize
+              image: "{{ $.Values.image.repository }}:{{ $.Values.image.tag }}"
+              imagePullPolicy: {{ $.Values.image.pullPolicy }}
+              args: [
+                "uv run python /home/src/feast_utils/feast_materialize.py"
+              ]
+              env:
+                {{- with (.Values.clickhouseOfflineStoreDbCredentials.env) }}
+                  {{- toYaml . | nindent 14 }}
+                  {{- end }}
+                {{- with (.Values.feastClickhouseDBCredentials.env) }}
+                  {{- toYaml . | nindent 14 }}
+                  {{- end }}
+                {{- with (.Values.clickhouseOnlineStoreDbCredentials.env) }}
+                  {{- toYaml . | nindent 14 }}
+                  {{- end }}
+                {{- with (.Values.feast.env) }}
+                  {{- toYaml . | nindent 14 }}
+                  {{- end }}
+              resources:
+                requests:
+                  cpu: "500m"
+                  memory: "2000Mi"
+                limits:
+                  memory: "2000Mi"

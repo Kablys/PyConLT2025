@@ -1,0 +1,21 @@
+FROM python:3.11-slim
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    git curl ca-certificates && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh
+ENV PATH="/root/.local/bin:$PATH"
+
+WORKDIR /home
+
+ARG PROJECT_PREFIX=pycondemo
+RUN mkdir -p /home/src /home/features
+COPY ${PROJECT_PREFIX}/pyproject.toml ${PROJECT_PREFIX}/uv.lock ${PROJECT_PREFIX}/README.md ./
+RUN uv sync --locked
+
+COPY ${PROJECT_PREFIX}/src /home/src
+COPY ${PROJECT_PREFIX}/feature_store.yaml /home/features/feature_store.yaml
+COPY ${PROJECT_PREFIX}/feature_repo.py /home/features/feature_repo.py
+
+ENTRYPOINT ["/bin/sh", "-c"]

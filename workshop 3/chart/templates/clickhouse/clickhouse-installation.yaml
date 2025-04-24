@@ -1,0 +1,14 @@
+apiVersion: "clickhouse.altinity.com/v1"
+kind: "ClickHouseInstallation"
+metadata:
+  name: "pycondemo"
+spec:
+  configuration:
+    users:
+      pycondemo/password: "password"
+      pycondemo/networks/ip: 0.0.0.0/0
+      pycondemo/profile: default
+      pycondemo/access_management: 1
+      pycondemo/named_collection_control: 1
+    clusters:
+      - name: "pycondemo"

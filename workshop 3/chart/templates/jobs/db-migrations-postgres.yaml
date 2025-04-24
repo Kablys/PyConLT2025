@@ -1,0 +1,39 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: db-migrations-postgres
+  labels:
+    team: ml
+    app.kubernetes.io/name: db-migrations-postgres
+spec:
+  backoffLimit: 10
+  completions: 1
+  parallelism: 1
+  template:
+    metadata:
+      name: db-migrations-postgres
+    spec:
+      securityContext:
+        runAsUser: 1000
+      restartPolicy: OnFailure
+      containers:
+        - name: db-migrations-postgres
+          image: "{{ $.Values.image_dbmigrations.repository }}:{{ $.Values.image_dbmigrations.tag }}"
+          args: [
+            "/bin/sh",
+            "-c",
+            "cd /home/db_migrations_postgres; yoyo apply -vvv --batch --no-config-file --database postgresql://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DBMIGRATIONS_DB_PORT}/${DB} .;"
+          ]
+          env:
+            {{- with (.Values.dbCredentials.env) }}
+              {{- toYaml . | nindent 14 }}
+              {{- end }}
+            {{- with (.Values.db_migrations.env) }}
+              {{- toYaml . | nindent 14 }}
+              {{- end }}
+          resources:
+            requests:
+              cpu: "500m"
+              memory: "2000Mi"
+            limits:
+              memory: "2000Mi"

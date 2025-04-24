@@ -1,0 +1,18 @@
+project: ${FEAST_PROJECT}
+provider: local
+registry:
+  registry_type: sql
+  path: postgresql+psycopg://${FEAST_REGISTRY_DB_USER}:${FEAST_REGISTRY_DB_PASSWORD}@${FEAST_REGISTRY_DB_HOST}:${FEAST_REGISTRY_DB_PORT}/${FEAST_CLICKHOUSE_REGISTRY_DB}
+online_store:
+  type: redis
+  connection_string: ${FEAST_ONLINE_REDIS_HOST}:${FEAST_ONLINE_REDIS_PORT},db=${FEAST_ONLINE_REDIS_DB}
+  key_ttl_seconds: 86400
+offline_store:
+  type: clickhouse
+  host: ${FEAST_OFFLINE_DB_HOST}
+  port: ${FEAST_OFFLINE_DB_PORT}
+  database: ${FEAST_OFFLINE_DB}
+  user: ${FEAST_OFFLINE_DB_USER}
+  password: ${FEAST_OFFLINE_DB_PASSWORD}
+  use_temporary_tables_for_entity_df: true
+entity_key_serialization_version: 2

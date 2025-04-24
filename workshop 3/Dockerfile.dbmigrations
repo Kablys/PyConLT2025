@@ -1,0 +1,23 @@
+FROM ghcr.io/kukymbr/goose-docker:latest as goose
+FROM python:3.10.12 as base
+
+RUN apt-get update -y
+
+WORKDIR /home
+
+FROM base as base-base
+
+RUN pip install psycopg2-binary yoyo-migrations jinja2
+
+RUN apt-get update && apt-get install -y clickhouse-client
+
+FROM base-base as base-base-dev
+
+COPY --from=goose /bin/goose /bin/goose
+
+COPY pycondemo/db_migrations_clickhouse /home/db_migrations_clickhouse
+COPY pycondemo/db_migrations_postgres /home/db_migrations_postgres
+
+RUN useradd --create-home --uid 1000 --user-group ml
+
+WORKDIR /home

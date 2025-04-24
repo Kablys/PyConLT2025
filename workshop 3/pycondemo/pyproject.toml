@@ -1,0 +1,38 @@
+[project]
+name = "pycondemo"
+version = "0.1.0"
+description = "Feast demo project"
+authors = [
+     { name = "Mantas Čepulkovskis", email = "mantas@cast.ai" },
+     { name = "Laurynas Stašys", email = "laurynas@cast.ai" }
+]
+
+requires-python = ">=3.11,<3.12"
+
+dependencies = [
+  "pandas>=2.2.2",
+  "numpy>=1.26.4",
+  "clickhouse-connect>=0.7.18",
+  "psycopg[binary]",
+  "redis",
+  "psycopg_pool",
+  "feast @ git+https://github.com/laurynas-stasys/feast.git@clickhouse_offline_store_fix",
+  "scikit-learn>=1.6.1",
+  "loguru>=0.7.3",
+  "mlflow<3",
+  "fastapi>=0.115.12",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["pycondemo"]
+
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[dependency-groups]
+dev = [
+    "pandas-stubs>=2.2.3.250308",
+    "types-requests>=2.32.0.20250328",
+]

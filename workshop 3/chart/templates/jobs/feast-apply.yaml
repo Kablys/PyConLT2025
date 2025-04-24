@@ -1,0 +1,42 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: feast-apply
+  labels:
+    team: ml
+    app.kubernetes.io/name: feast-apply
+spec:
+  backoffLimit: 10
+  completions: 1
+  parallelism: 1
+  template:
+    metadata:
+      name: feast-apply
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: feast-apply
+          image: "{{ $.Values.image.repository }}:{{ $.Values.image.tag }}"
+          imagePullPolicy: {{ $.Values.image.pullPolicy }}
+          args: [
+            "cd ${FEAST_REPO_PATH}; uv run feast apply;"
+          ]
+          env:
+            {{- with (.Values.clickhouseOfflineStoreDbCredentials.env) }}
+              {{- toYaml . | nindent 14 }}
+              {{- end }}
+            {{- with (.Values.feast.env) }}
+              {{- toYaml . | nindent 14 }}
+              {{- end }}
+            {{- with (.Values.feastClickhouseDBCredentials.env) }}
+              {{- toYaml . | nindent 14 }}
+              {{- end }}
+            {{- with (.Values.clickhouseOnlineStoreDbCredentials.env) }}
+              {{- toYaml . | nindent 14 }}
+              {{- end }}
+          resources:
+            requests:
+              cpu: "500m"
+              memory: "2000Mi"
+            limits:
+              memory: "2000Mi"

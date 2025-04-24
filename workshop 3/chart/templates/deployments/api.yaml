@@ -1,0 +1,67 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pycondemo-api
+  namespace: {{ .Release.Namespace }}
+spec:
+  replicas: {{ .Values.api.replicaCount }}
+  selector:
+    matchLabels:
+      app: pycondemo
+      component: api
+  template:
+    metadata:
+      labels:
+        app: pycondemo
+        component: api
+    spec:
+      containers:
+        - name: api
+          image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          args: [
+            "uv run python /home/src/api/api.py"
+          ]
+          ports:
+            - name: http
+              containerPort: 8000
+              protocol: TCP
+          env:
+            {{- with (.Values.feast.env) }}
+              {{- toYaml . | nindent 12 }}
+            {{- end }}
+            {{- with (.Values.mlflowCredentials.env) }}
+              {{- toYaml . | nindent 12 }}
+            {{- end }}
+            {{- with (.Values.loguru.env) }}
+              {{- toYaml . | nindent 12 }}
+            {{- end }}
+            {{- with (.Values.clickhouseDbCredentials.env) }}
+              {{- toYaml . | nindent 12 }}
+            {{- end }}
+            {{- with (.Values.clickhouseOfflineStoreDbCredentials.env) }}
+              {{- toYaml . | nindent 12 }}
+            {{- end }}
+            {{- with (.Values.feastClickhouseDBCredentials.env) }}
+              {{- toYaml . | nindent 12 }}
+            {{- end }}
+            {{- with (.Values.clickhouseOnlineStoreDbCredentials.env) }}
+              {{- toYaml . | nindent 12 }}
+            {{- end }}
+            {{- with (.Values.api.env) }}
+              {{- toYaml . | nindent 12 }}
+            {{- end }}
+          resources:
+            {{- toYaml .Values.api.resources | nindent 12 }}
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10 

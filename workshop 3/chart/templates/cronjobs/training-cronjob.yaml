@@ -1,0 +1,40 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: pycondemo-training
+  namespace: {{ .Release.Namespace }}
+spec:
+  schedule: "0 0 31 2 *"
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: training
+            image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+            imagePullPolicy: {{ .Values.image.pullPolicy }}
+            args: [
+              "uv run python /home/src/model/train_model.py"
+            ]
+            env:
+            {{- with (.Values.clickhouseDbCredentials.env) }}
+              {{- toYaml . | nindent 14 }}
+            {{- end }}
+            {{- with (.Values.clickhouseOfflineStoreDbCredentials.env) }}
+              {{- toYaml . | nindent 14 }}
+            {{- end }}
+            {{- with (.Values.feastClickhouseDBCredentials.env) }}
+              {{- toYaml . | nindent 14 }}
+            {{- end }}
+            {{- with (.Values.clickhouseOnlineStoreDbCredentials.env) }}
+              {{- toYaml . | nindent 14 }}
+            {{- end }}
+            {{- with (.Values.feast.env) }}
+              {{- toYaml . | nindent 14 }}
+            {{- end }}
+            {{- with (.Values.mlflowCredentials.env) }}
+              {{- toYaml . | nindent 14 }}
+            {{- end }}
+          restartPolicy: Never
+      backoffLimit: 1 

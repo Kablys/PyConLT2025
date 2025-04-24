@@ -1,0 +1,34 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: db-data-aggregation
+  labels:
+    team: ml
+    app.kubernetes.io/name: db-data-aggregation
+spec:
+  schedule: "* * * * *"
+  jobTemplate:
+    spec:
+      backoffLimit: 10
+      template:
+        metadata:
+          name: db-data-aggregation
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: db-data-aggregation
+              image: "{{ $.Values.image.repository }}:{{ $.Values.image.tag }}"
+              imagePullPolicy: {{ $.Values.image.pullPolicy }}
+              args: [
+                "uv run python /home/src/data/aggregate_data.py"
+              ]
+              env:
+                {{- with (.Values.clickhouseDbCredentials.env) }}
+                  {{- toYaml . | nindent 14 }}
+                  {{- end }}
+              resources:
+                requests:
+                  cpu: "500m"
+                  memory: "2000Mi"
+                limits:
+                  memory: "2000Mi"
