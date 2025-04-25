@@ -12,3 +12,6 @@
 - https://github.com/castai/pycon-lt-2025-demo
 - https://cast.ai/
 - https://feast.dev/
+
+---
+- https://www.langflow.org/
